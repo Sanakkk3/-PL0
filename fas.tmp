@@ -1,0 +1,5 @@
+1 varmlev= 0 addr= 3
+2 varnlev= 0 addr= 4
+3 varrlev= 0 addr= 5
+4 varqlev= 0 addr= 6
+5 procgcd lev= 0 addr= 2 size= 3

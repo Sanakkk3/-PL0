@@ -1,0 +1,2 @@
+D:\VS_2019\projectSpace\pl0_02\x64\Debug\pl0_02.exe
+D:\VS_2019\projectSpace\pl0_02\x64\Debug\pl0_02.pdb
