@@ -1,6 +1,5 @@
 //18级信息安全2班
 
-//陈雪莹
 /*编译和运行环境：
 * 1 Visual C++ 6.0，Visual C++.NET and Visual C++.NET 2003
 *  WinNT,Win2000,WinXP and Win2003
@@ -13,7 +12,7 @@
 * 回答是否输出名字表
 * fa.tmp输出虚拟机代码
 * fa1.tmp输出源文件及其各行对应的首地址
-* fa2.tep输出结果
+* fa2.tmp输出结果
 * fas.tmp输出名字表
 */
 
@@ -26,8 +25,6 @@
 /*解释执行时使用的栈*/
 #define stacksize 500
 
-
-//黄圆圆
 int main()
 {
 	bool nxtlev[symnum];
@@ -56,8 +53,6 @@ int main()
 			addset(nxtlev, declbegsys, statbegsys, symnum);
 			nxtlev[period] = true;
 
-
-			// 李纪然
 			if (-1 == block(0, 0, nxtlev)) {
 				fclose(fa);
 				fclose(fa1);
@@ -90,9 +85,6 @@ int main()
 	return 0;
 }
 
-
-
-//李文静
 /*
 *初始化
 */
@@ -118,31 +110,41 @@ void init() {
 	strcpy(&(word[1][0]), "call");
 	strcpy(&(word[2][0]), "const");
 	strcpy(&(word[3][0]), "do");
-	strcpy(&(word[4][0]), "end");
-	strcpy(&(word[5][0]), "if");
-	strcpy(&(word[6][0]), "odd");
-	strcpy(&(word[7][0]), "procedure");
-	strcpy(&(word[8][0]), "read");
-	strcpy(&(word[9][0]), "then");
-	strcpy(&(word[10][0]), "var");
-	strcpy(&(word[11][0]), "while");
-	strcpy(&(word[12][0]), "write");
+	strcpy(&word[4][0], "downto");				//add
+	strcpy(&(word[5][0]), "end");
+	strcpy(&word[6][0], "else");				//add
+	strcpy(&word[7][0], "for");					//add
+	strcpy(&(word[8][0]), "if");
+	strcpy(&(word[9][0]), "odd");
+	strcpy(&(word[10][0]), "procedure");
+	strcpy(&(word[11][0]), "read");
+	strcpy(&word[12][0], "return");				//add
+	strcpy(&word[13][0], "to");					//add
+	strcpy(&(word[14][0]), "then");
+	strcpy(&(word[15][0]), "var");
+	strcpy(&(word[16][0]), "while");
+	strcpy(&(word[17][0]), "write");
 
-	// 左梓仪
 	/*设置保留字符号*/
 	wsym[0] = beginsym;
 	wsym[1] = callsym;
 	wsym[2] = constsym;
 	wsym[3] = dosym;
-	wsym[4] = endsym;
-	wsym[5] = ifsym;
-	wsym[6] = oddsym;
-	wsym[7] = procsym;
-	wsym[8] = readsym;
-	wsym[9] = thensym;
-	wsym[10] = varsym;
-	wsym[11] = whilesym;
-	wsym[12] = writesym;
+	wsym[4] = downtosym;				//add
+	wsym[5] = endsym;
+	wsym[6] = elsesym;					//add
+	wsym[7] = forsym;					//add
+	wsym[8] = ifsym;
+	wsym[9] = oddsym;
+	wsym[10] = procsym;
+	wsym[11] = readsym;
+	wsym[12] = returnsym;				//add
+	wsym[13] = tosym;					//add
+	wsym[14] = thensym;
+	wsym[15] = varsym;
+	wsym[16] = whilesym;
+	wsym[17] = writesym;
+
 	/*设置指令名称*/
 	strcpy(&(mnemonic[lit][0]), "lit");
 	strcpy(&(mnemonic[opr][0]), "opr");
@@ -159,9 +161,7 @@ void init() {
 		statbegsys[i] = false;
 		facbegsys[i] = false;
 	}
-	/*
-	周赛星-3218005445
-	*/
+
 	/*设置声明开始符号集*/
 	declbegsys[constsym] = true;
 	declbegsys[varsym] = true;
@@ -202,8 +202,6 @@ int subset(bool* sr, bool* s1, bool* s2, int n)
 	return 0;
 }
 
-/*王欢-3218005443
-*/
 int mulset(bool* sr, bool* s1, bool* s2, int n)
 {
 	int i;
@@ -246,9 +244,6 @@ int getch()
 		printf("%d", cx);
 		fprintf(fa1, "%d", cx);
 		ch = ' ';
-		/*
-		* 袁丽玲-3218005444
-		*/
 		while (ch != 10) {
 			//fscanf(fin,"%c",&ch)
 			if (EOF == fscanf(fin, "%c", &ch))
@@ -290,9 +285,7 @@ int getsym()
 			}
 			getchdo;
 		} while (ch >= 'a' && ch <= 'z' || ch >= '0' && ch <= '9');
-		/*
-		蔡晓芬-3218005438
-		*/
+
 		a[k] = 0;
 		strcpy(id, a);
 		i = 0;
@@ -317,6 +310,27 @@ int getsym()
 			sym = ident;    /* 搜索失败，则是名字或数字 */
 		}
 	}
+
+	/*-------------add_up-----------*/
+	/* 添加 ++、+=、--、-=、+、- 符号*/
+	else if (ch == '+') {
+		getchdo;
+		if (ch == '=') { sym = peql; getchdo; }
+		else {
+			if (ch == '+') { sym = dplus; getchdo; }
+			else sym = plus;
+		}
+	}
+	else if (ch == '-') {
+		getchdo;
+		if (ch == '=') { sym = meql; getchdo; }
+		else {
+			if (ch == '-') { sym = dminus; getchdo; }
+			else sym = minus;
+		}
+	}
+	/*-------------add_bottom-----------*/
+
 	else
 	{
 		if (ch >= '0' && ch <= '9')    /* 检测是否为数字：以0~9开头 */
@@ -325,7 +339,6 @@ int getsym()
 			num = 0;
 			sym = number;
 			do {
-				// 陳家健
 				num = 10 * num + ch - '0';
 				k++;
 				getchdo;
@@ -346,7 +359,6 @@ int getsym()
 					sym = nul;   /*不能识别的符号*/
 				}
 			}
-			//陳乙鑫
 			else {
 				if (ch == '<') /*检测小于或小于等于符号*/
 				{
@@ -355,6 +367,15 @@ int getsym()
 						sym = leq;
 						getchdo;
 					}
+
+					/*--------add_up---------*/
+					/* 将 # 替换成 <> 表示不等*/
+					else if (ch == '>') {
+						sym = neq;
+						getchdo;
+					}
+					/*------add_bottom------*/
+
 					else {
 						sym = lss;
 					}
@@ -369,8 +390,6 @@ int getsym()
 						}
 						else
 						{
-
-							//陈健
 							sym = gtr;
 						}
 					}
@@ -408,6 +427,7 @@ int gen(enum fct x, int y, int z) {
 	cx++;
 	return 0;
 }
+
 /*
 *测试当前符号是否合法
 *
@@ -420,8 +440,6 @@ int gen(enum fct x, int y, int z) {
 *s2:如果不是我们需要的，则需要一个补救用的集合
 *n:错误号
 */
-
-//陈蜀毅
 int test(bool* sl, bool* s2, int n) {
 	if (!inset(sym, sl)) {
 		error(n);
@@ -432,6 +450,7 @@ int test(bool* sl, bool* s2, int n) {
 	}
 	return 0;
 }
+
 /*
 *编译程序主体
 *
@@ -439,8 +458,6 @@ int test(bool* sl, bool* s2, int n) {
 *tx:名字表当前尾指针
 *fsys:当前模块后跟符号集合
 */
-
-/*曾广宁*/
 int block(int lev, int tx, bool* fsys) {
 	int i;
 	int dx;/*名字分配到的相对地址*/
@@ -751,9 +768,6 @@ int statement(bool* fsys, int* ptx, int lev)
 		}
 		else
 		{
-			/*
-			*科宪
-			*/
 			if (table[i].kind != variable)
 			{
 				error(12); /*赋值语句格式错误*/
@@ -765,13 +779,48 @@ int statement(bool* fsys, int* ptx, int lev)
 				if (sym == becomes)
 				{
 					getsymdo;
+					/*--------------add_up----------------*/
+					 /* 处理赋值符号右侧表达式 */
+					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+					expressiondo(nxtlev, ptx, lev);
+					/*-----------add_bottom---------------*/
 				}
+				/*--------------add_up----------------*/
+				else if (sym == peql) {				//+=处理
+					i = position(id, *ptx);			//将x+=？中x地址取出来
+					gendo(lod, lev - table[i].level, table[i].adr);			//生成指令代码
+					getsymdo;
+
+					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+					expressiondo(nxtlev, ptx, lev);
+					gendo(opr, 0, 2);
+				}
+				else if (sym == meql) {					//-=处理
+					i = position(id, *ptx);	                          //将x-=？中x的地址取出来
+					gendo(lod, lev - table[i].level, table[i].adr);      //生成指令代码
+					getsymdo;
+
+					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+					expressiondo(nxtlev, ptx, lev);
+					gendo(opr, 0, 3);
+				}
+				else if (sym = dplus) {			//++处理
+					gendo(lit, 0, 1);
+					gendo(lod, lev - table[i].level, table[i].adr);
+					gendo(opr, 0, 2);
+					getsymdo;
+				}
+				else if (sym = dminus) {
+					gendo(lod, lev - table[i].level, table[i].adr);
+					gendo(lit, 0, 1);
+					gendo(opr, 0, 3);
+					getsymdo;
+				}
+				/*-----------add_bottom---------------*/
 				else
 				{
 					error(13); /*没有检测到赋值符号 */
 				}
-				memcpy(nxtlev, fsys, sizeof(bool) * symnum);
-				expressiondo(nxtlev, ptx, lev); /*处理赋值符号右侧表达式*/
 				if (i != 0)
 				{
 					/*expression将执行一系列指令，但最终结果将会保存在栈顶，执行 sto命令完成赋值 */
@@ -806,11 +855,6 @@ int statement(bool* fsys, int* ptx, int lev)
 					{
 						error(35); /*read() 中应是声明过的变量名 */
 					}
-					/*
-						* 孔止
-						* begin
-					*/
-
 					else
 					{
 						gendo(opr, 0, 16);  //生成输入指令，读取值到栈顶
@@ -891,17 +935,9 @@ int statement(bool* fsys, int* ptx, int lev)
 						getsymdo;
 					}
 				}
-				/*
-				* end
-				*/
-
-				/*
-				* 卢柏铖
-				* begin
-				*/
 				else
 				{
-					if (sym == ifsym)
+					if (sym == ifsym)		/*准备按照if语句准备*/
 					{
 						getsymdo;
 						memcpy(nxtlev, fsys, sizeof(bool) * symnum);
@@ -920,18 +956,9 @@ int statement(bool* fsys, int* ptx, int lev)
 						gendo(jpc, 0, 0);
 						statementdo(fsys, ptx, lev);
 						code[cx1].a = cx;
-
-
 					}
 					else
 					{
-						/*
-						* end
-						*/
-
-						/*
-						* 李兆海
-						*/
 						if (sym == beginsym)		/*准备按照复合语句处理*/
 						{
 							getsymdo;
@@ -961,15 +988,6 @@ int statement(bool* fsys, int* ptx, int lev)
 								error(17);		/*缺少end或分号*/
 							}
 						}
-						/*
-						* end
-						*/
-
-						/*
-						* 刘芊羿
-						* begin
-						*/
-
 						else
 						{
 							if (sym == whilesym)
@@ -990,11 +1008,6 @@ int statement(bool* fsys, int* ptx, int lev)
 								}
 								statementdo(fsys, ptx, lev);
 								gendo(jmp, 0, cx1);
-								/*
-									* end
-									*/
-									//3118005419彭凯金 P388
-
 								code[cx2].a = cx;  /* 反填跳出循环的地址，与if类似 */
 							}
 							else

@@ -1,52 +1,26 @@
 Input pl/0 file?y
-0var m,n,r,q;
+0const a=10;
 
-1procedure gcd;
+1var b,c;
 
-1begin
+1procedure p;
 
-3while r#0 do
+1  begin
 
-7begin 
+3   c:=b+a
 
-7q :=m / n;
+5  end;
 
-11r :=m - q * n;
+8begin
 
-17m :=n;
+9  read(b);
 
-19n :=r;
+11  while b#0 do
 
-21end
+15    begin
 
-21end;
+15     call p; write(2*c);read(b)
 
-23begin 
+23    end
 
-24read(m);
-
-26read(n);
-
-28if m<n then
-
-31begin
-
-32r :=m;
-
-34m :=n;
-
-36n :=r;
-
-38end;
-
-38begin
-
-38r :=1;
-
-40call gcd;
-
-41write(m);
-
-44end;
-
-44end.
+23end.

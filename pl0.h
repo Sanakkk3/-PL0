@@ -8,7 +8,7 @@ typedef enum
 	true
 } bool;
 
-#define norw 13	  /* 关键字个数 */
+#define norw 18	  /* 关键字个数 */
 #define txmax 100 /* 名字表容量 */
 #define nmax 14	  /* number 的最大位数 */
 #define al 10	  /* 符号的最大长度 */
@@ -16,7 +16,6 @@ typedef enum
 #define levmax 3  /* 最大允许过程嵌套声明层数 [0, levmax] */
 #define cxmax 200 /* 最多的虚拟机代码数 */
 
-// 钟景文
 /* 符号 */
 enum symbol
 {
@@ -28,11 +27,11 @@ enum symbol
 	writesym, readsym, dosym, callsym, constsym,
 	varsym, procsym,
 	/*添加新的保留字*/
-	forsym, tosym, downtosym, peqlsym,
-	meqlsym, dplussym, dminussym, returnsym,
+	forsym, tosym, downtosym, returnsym, elsesym,
+	peql, meql, dplus, dminus,
 };
 
-#define symnum 32
+#define symnum 41
 
 /* 名字表中的类型 */
 enum object
@@ -45,19 +44,12 @@ enum object
 /* 虚拟机代码 */
 enum fct
 {
-	lit,
-	opr,
-	lod,
-	sto,
-	cal,
-	inte,
-	jmp,
-	jpc,
+	lit, opr, lod, sto,
+	cal, inte, jmp, jpc,
 };
 
 #define fctnum 8
 
-// 钟文磊
 /* 虚拟机代码结构 */
 struct instruction
 {
@@ -85,7 +77,6 @@ int cx;		/* 虚拟机代码指针，取值范围为 [0, cxmax - 1] */
 char line[81];	/* 读取行缓冲区 */
 char a[al + 1]; /* 临时符号，多出的一个字节用于存放 0 */
 
-// 朱景钊
 struct instruction code[cxmax]; /* 存放虚拟机代码的数组 */
 char word[norw][al];			/* 保留字 */
 enum symbol wsym[norw];			/* 保留字对应的符号值 */
@@ -114,7 +105,6 @@ FILE* fout;
 char fname[al];
 int err; /* 错误计数器 */
 
-// 王楷楠
 /* 当函数中会发生 fatal error 时，返回 -1 告知调用它的函数，最终退出程序 */
 #define getsymdo      if (-1 == getsym()) return -1
 #define getchdo       if (-1 == getch()) return -1
