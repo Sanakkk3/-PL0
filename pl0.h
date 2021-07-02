@@ -28,7 +28,7 @@ enum symbol
 	varsym, procsym,
 	/*添加新的保留字*/
 	forsym, tosym, downtosym, returnsym, elsesym,
-	peql, meql, dplus, dminus,
+	peql/*+=*/, meql/*-=*/, dplus/*++*/, dminus/*--*/,
 };
 
 #define symnum 41

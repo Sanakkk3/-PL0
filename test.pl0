@@ -1,0 +1,10 @@
+var a,b,c;
+begin
+	a:=8;
+	b:=4;
+	read(c);
+	if c>5 then 
+		write(a)
+	else
+		write(b)
+end.

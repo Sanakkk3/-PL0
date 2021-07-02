@@ -1,0 +1,6 @@
+var a,b;
+begin
+ a:=8;
+ while a<>5 do
+   write(a);
+end.

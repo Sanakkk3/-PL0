@@ -1,4 +1,3 @@
-1 const aval = 10
-2 varblev= 0 addr= 3
-3 varclev= 0 addr= 4
-4 procp lev= 0 addr= 2 size= 3
+1 varalev= 0 addr= 3
+2 varblev= 0 addr= 4
+3 varclev= 0 addr= 5

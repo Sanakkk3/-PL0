@@ -1,26 +1,24 @@
 Input pl/0 file?y
-0const a=10;
+0var a,b,c;
 
-1var b,c;
+1begin
 
-1procedure p;
+2	a:=8;
 
-1  begin
+4	b:=4;
 
-3   c:=b+a
+6	read(c);
 
-5  end;
+8	if c>5 then 
 
-8begin
+****            !11
+10		write(a)
 
-9  read(b);
+****       !16
+14	else
 
-11  while b#0 do
+****     !17
+****     !8
+16		write(b)
 
-15    begin
-
-15     call p; write(2*c);read(b)
-
-23    end
-
-23end.
+16end.
