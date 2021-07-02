@@ -1,0 +1,10 @@
+var a,b;
+begin
+ a:=8;
+ if a<>5 then
+ begin
+   write(a);
+   a:=a-1;
+   write(a);
+ end;
+end.

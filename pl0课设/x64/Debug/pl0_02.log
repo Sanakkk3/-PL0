@@ -1,0 +1,3 @@
+﻿  pl0.c
+D:\VS_2019\projectSpace\pl0_02\pl0.c(420,12): warning C4553: “==”: 未使用表达式结果；是否打算使用“=”?
+  pl0_02.vcxproj -> D:\VS_2019\projectSpace\pl0_02\x64\Debug\pl0_02.exe
