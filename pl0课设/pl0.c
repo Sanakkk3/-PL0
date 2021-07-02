@@ -186,6 +186,11 @@ void init() {
 	facbegsys[ident] = true;
 	facbegsys[number] = true;
 	facbegsys[lparen] = true;
+	/*-----------add_up------------*/
+	/* 增加++和--因子 */
+	facbegsys[dplus] = true;
+	facbegsys[dminus] = true;
+	/*-----------add_bottom--------*/
 }
 /*
 *用数组实现集合的集合运算
@@ -366,7 +371,7 @@ int getsym()
 						sym = leq;
 						getchdo;
 					}
-					/*-------add_up----------*/
+					/*----------add_up----------*/
 					/* 修改#为<> */
 					else if (ch == '>') {
 						sym = neq; //构成不等号 <>
@@ -406,6 +411,9 @@ int getsym()
 							sym = dplus;
 							getchdo;
 						}
+						else {
+							sym = plus;
+						}
 					}
 					else if (ch == '-') //增添检测--和-=
 					{
@@ -419,6 +427,9 @@ int getsym()
 						{
 							sym == dminus;
 							getchdo;
+						}
+						else {
+							sym = minus;
 						}
 					}
 					/*------add_down---------*/
@@ -619,14 +630,14 @@ int block(int lev, int tx, bool* fsys) {
 				break;
 
 			case variable:
-				printf("%d var%s", i, table[i].name);
+				printf("%d var %s ", i, table[i].name);
 				printf("lev= %d addr=%d\n", table[i].level, table[i].adr);
 				fprintf(fas, "%d var%s", i, table[i].name);
 				fprintf(fas, "lev= %d addr= %d\n", table[i].level, table[i].adr);
 				break;
 
 			case procedur:
-				printf("%d proc%s ", i, table[i].name);
+				printf("%d proc %s ", i, table[i].name);
 				printf("lev = %d addr= %d size = %d\n", table[i].level, table[i].adr, table[i].size);
 				fprintf(fas, "%d proc%s ", i, table[i].name);
 				fprintf(fas, "lev= %d addr= %d size= %d\n", table[i].level, table[i].adr, table[i].size);
@@ -813,18 +824,52 @@ int statement(bool* fsys, int* ptx, int lev)
 				if (sym == becomes)
 				{
 					getsymdo;
+					/*-------------add_up----------------*/
+					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+					expressiondo(nxtlev, ptx, lev);
+					if (i != 0)//如果不曾出错，i将不为0，i所指为当前语句
+							//左部标识符在符号表中的位置 
+					{
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+					/*--------------add_bottom-----------*/
 				}
-				else
+				/*--------------------add_up----------------*/
+				else if (sym == peql) // 检测到 +＝符号
 				{
-					error(13); /*没有检测到赋值符号 */
+					i = position(id, *ptx); 
+					gendo(lod, lev - table[i].level, table[i].adr);      /* 找到变量地址并将其值入栈 */
+					getsymdo;
+					if (sym == semicolon)
+					{
+						getsymdo;
+					}
+					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+					expressiondo(nxtlev, ptx, lev);
+					gendo(opr, 0, 2);
+					if (i != 0)
+					{
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
 				}
-				memcpy(nxtlev, fsys, sizeof(bool) * symnum);
-				expressiondo(nxtlev, ptx, lev); /*处理赋值符号右侧表达式*/
-				if (i != 0)
+				else if (sym == meql) // 检测到 - ＝符号
 				{
-					/*expression将执行一系列指令，但最终结果将会保存在栈顶，执行 sto命令完成赋值 */
-					gendo(sto, lev - table[i].level, table[i].adr);
+					i = position(id, *ptx);
+					gendo(lod, lev - table[i].level, table[i].adr);      /* 找到变量地址并将其值入栈 */
+					getsymdo;
+					if (sym == semicolon)
+					{
+						getsymdo;
+					}
+					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+					expressiondo(nxtlev, ptx, lev);
+					gendo(opr, 0, 3);
+					if (i != 0)
+					{
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
 				}
+				/*-----------------------add_bottom--------------*/
 			}
 		}//if(i == 0)
 	}
@@ -955,9 +1000,6 @@ int statement(bool* fsys, int* ptx, int lev)
 						memcpy(nxtlev, fsys, sizeof(bool) * symnum);
 						nxtlev[thensym] = true;
 						nxtlev[dosym] = true;
-						/*-------add_up-------*/
-						nxtlev[elsesym] = true;//添加后跟符号else
-						/*-------add_bottom------*/
 						conditiondo(nxtlev, ptx, lev);
 						if (sym == thensym)
 						{
@@ -972,18 +1014,6 @@ int statement(bool* fsys, int* ptx, int lev)
 						statementdo(fsys, ptx, lev);
 						code[cx1].a = cx;
 
-						/*-------add_up---------*/
-						if (sym != elsesym) { code[cx1].a = cx; }
-						else
-						{
-							getsymdo;
-							cx2 = cx;
-							code[cx1].a = cx + 1;			
-							gendo(jmp, 0, 0);
-							statementdo(fsys, ptx, lev);
-							code[cx2].a = cx;
-						}
-						/*------add_bottom--------*/
 
 					}
 					else
@@ -1190,6 +1220,70 @@ int factor(bool* fsys, int* ptx, int lev) {
 				}
 			}
 			getsymdo;
+			/*-----------add_up------------*/
+			if (sym == dplus)
+			{
+				gendo(lit, lev - table[i].level, 1);//将值为入栈
+				gendo(opr, lev - table[i].level, 2);//+1,栈顶加次栈顶
+				gendo(sto, lev - table[i].level, table[i].adr);//出栈取值到内存
+				gendo(lod, lev - table[i].level, table[i].adr);//取值到栈顶
+				gendo(lit, 0, 1);
+				gendo(opr, 0, 3);//栈顶值减
+				getsymdo;
+			}
+			else if (sym == dminus)
+			{
+				gendo(lit, lev - table[i].level, 1);//将值为入栈
+				gendo(opr, lev - table[i].level, 3);//-1,栈顶加次栈顶
+				gendo(sto, lev - table[i].level, table[i].adr);//出栈取值到内存
+				gendo(lod, lev - table[i].level, table[i].adr);//取值到栈顶
+				gendo(lit, 0, 1);
+				gendo(opr, 0, 2);//栈顶值加
+				getsymdo;
+			}
+		}
+		else if (sym == dplus)
+		{
+			getsymdo;
+			if (sym == ident)
+			{
+				getsymdo;
+				i = position(id, *ptx);
+				if (i == 0) error(11);
+				else
+				{
+					if (table[i].kind == variable)
+					{
+						gendo(lod, lev - table[i].level, table[i].adr);//找到变量地址，将其值入栈
+						gendo(lit, 0, 1);//将常数1取到栈顶
+						gendo(opr, 0, 2);     //执行加操作
+						gendo(sto, lev - table[i].level, table[i].adr);//出栈取值到内存
+						gendo(lod, lev - table[i].level, table[i].adr);//取值到栈顶
+					}
+				}
+			}
+		}
+		else if (sym == dminus)
+		{
+			getsymdo;
+			if (sym == ident)
+			{
+				getsymdo;
+				i = position(id, *ptx);
+				if (i == 0) error(11);
+				else
+				{
+					if (table[i].kind == variable)
+					{
+						gendo(lod, lev - table[i].level, table[i].adr);//找到变量地址，将其值入栈
+						gendo(lit, 0, 1);//将常数1取到栈顶
+						gendo(opr, 0, 3);     //执行减操作
+						gendo(sto, lev - table[i].level, table[i].adr);//出栈取值到内存
+						gendo(lod, lev - table[i].level, table[i].adr);//取值到栈顶
+					}
+				}
+			}
+			/*-----------add_bottom--------*/
 		}
 		else {
 			if (sym == number) {     //因子为数

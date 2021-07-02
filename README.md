@@ -76,10 +76,36 @@ peql（+=）,meql（-=）, dplus（++）, dminus（--）,
 
 ![](./pictures/语法分析.png)
 
+
+
+代码保存驿站：
+
 ```c
-/*
-*语句处理 语法分析
-*/
+VAR a,c;
+begin
+ read(a);
+ c:=a++;
+ write(c)
+ c:=a--;
+ write(c)
+
+ c:=++a;
+ write(c)
+ c:=--a;
+ write(c)
+
+ a+:=1;
+ c:=a;
+ write(c)
+
+ a-:=1;
+ c:=a;
+ write(c)
+
+end.
+```
+
+```
 int statement(bool* fsys, int* ptx, int lev)
 {
 	int i, cx1, cx2;
@@ -93,6 +119,9 @@ int statement(bool* fsys, int* ptx, int lev)
 		}
 		else
 		{
+			/*
+			*科宪
+			*/
 			if (table[i].kind != variable)
 			{
 				error(12); /*赋值语句格式错误*/
@@ -104,56 +133,135 @@ int statement(bool* fsys, int* ptx, int lev)
 				if (sym == becomes)
 				{
 					getsymdo;
-					/*--------------add_up----------------*/
-					 /* 处理赋值符号右侧表达式 */
+					/*-------add_up-------*/
 					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
 					expressiondo(nxtlev, ptx, lev);
-					/*-----------add_bottom---------------*/
+					if (i != 0) {		/* i应该指向当前语句左部标识符在符号表中的位置 */
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+					/*-----------add_bottom------------*/
 				}
-				/*--------------add_up----------------*/
-				else if (sym == peql) {				//+=处理
-					i = position(id, *ptx);			//将x+=？中x地址取出来
-					gendo(lod, lev - table[i].level, table[i].adr);			//生成指令代码
+				/*---------------add_up----------------*/
+				else if (sym = peql) {			/*处理+=语句*/
+					i = position(id, *ptx);
+					gendo(lod, lev - table[i].level, table[i].adr);
 					getsymdo;
-
+					if (sym == semicolon) {
+						getsymdo;
+					}
 					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
 					expressiondo(nxtlev, ptx, lev);
 					gendo(opr, 0, 2);
+					if (i != 0) {
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
 				}
-				else if (sym == meql) {					//-=处理
-					i = position(id, *ptx);	                          //将x-=？中x的地址取出来
-					gendo(lod, lev - table[i].level, table[i].adr);      //生成指令代码
+				else if (sym == meql) {			/*处理-=语句*/
+					i = position(id, *ptx);
+					gendo(lod, lev - table[i].level, table[i].adr);
 					getsymdo;
-
+					if (sym == semicolon) {
+						getsymdo;
+					}
 					memcpy(nxtlev, fsys, sizeof(bool) * symnum);
 					expressiondo(nxtlev, ptx, lev);
 					gendo(opr, 0, 3);
+					if (i != 0) {
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
 				}
-				else if (sym = dplus) {			//++处理
-					gendo(lit, 0, 1);
-					gendo(lod, lev - table[i].level, table[i].adr);
-					gendo(opr, 0, 2);
-					getsymdo;
-				}
-				else if (sym = dminus) {
-					gendo(lod, lev - table[i].level, table[i].adr);
-					gendo(lit, 0, 1);
-					gendo(opr, 0, 3);
-					getsymdo;
-				}
-				/*-----------add_bottom---------------*/
+				//else if (sym = dplus) {			/*后++运算*/
+				//	getsymdo;
+				//	gendo(lod, lev - table[i].level, table[i].adr);	 //找到变量地址，将其值入栈
+				//	gendo(lit, 0, 1);	//取常数1到栈顶
+				//	if (i != 0) {
+				//		gendo(opr, 0, 2);		//次栈顶与栈顶的值相加，结果存入次栈顶，t减1
+				//		gendo(sto, lev - table[i].level, table[i].adr);
+				//	}
+				//}
+				//else if (sym = dminus) {
+				//	getsymdo;
+				//	gendo(lod, lev - table[i].level, table[i].adr);	 //找到变量地址，将其值入栈
+				//	gendo(lit, 0, 1);	//取常数1到栈顶
+				//	if (i != 0) {
+				//		gendo(opr, 0, 3);		//次栈顶与栈顶的值相减，结果存入次栈顶，t减1
+				//		gendo(sto, lev - table[i].level, table[i].adr);
+				//	}
+				//}
+				///*--------------add_bottom--------------*/
 				else
 				{
 					error(13); /*没有检测到赋值符号 */
 				}
-				if (i != 0)
-				{
-					/*expression将执行一系列指令，但最终结果将会保存在栈顶，执行 sto命令完成赋值 */
-					gendo(sto, lev - table[i].level, table[i].adr);
-				} 
+				//memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+				//expressiondo(nxtlev, ptx, lev); /*处理赋值符号右侧表达式*/
+				//if (i != 0)
+				//{
+				//	/*expression将执行一系列指令，但最终结果将会保存在栈顶，执行 sto命令完成赋值 */
+				//	gendo(sto, lev - table[i].level, table[i].adr);
+				//}
 			}
 		}//if(i == 0)
 	}
+	/*-------------------add_up---------------------------*/
+	else if (sym = dplus) {		/*前++运算*/
+		getsymdo;		//因为是前++，所以后面要跟变量variable
+		if (sym == ident) {
+			i = position(id, *ptx);		//ident在符号表中的位置
+			if (i == 0)	error(11);
+			else {
+				if (table[i].kind != variable) {
+					error(12);
+					i = 0;
+				}
+				else {
+					getsymdo;
+					gendo(lod, lev - table[i].level, table[i].adr);
+					gendo(lit, 0, 1);
+					if (i != 0) {
+						gendo(opr, 0, 2);
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+				}
+			}
+		}
+		else {
+			error(19);
+		}
+	}
+	else if (sym == dminus) {	/*前--运算*/
+		getsymdo;
+		if (sym == ident)
+		{
+			i = position(id, *ptx);
+			if (i == 0) error(11);
+			else
+			{
+				if (table[i].kind != variable)
+				{
+					error(12);
+					i = 0;
+				}
+				else  
+				{
+					getsymdo;
+					gendo(lod, lev - table[i].level, table[i].adr);
+					gendo(lit, 0, 1);
+					if (i != 0)
+					{
+						gendo(opr, 0, 3); 
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+				}
+
+			}
+		}
+		else
+		{
+			error(19);
+		}
+	}
+	/*-----------------add_bottom-------------------------*/
 	else
 	{
 		if (sym == readsym) /*准备按照 read语句处理*/
@@ -180,6 +288,11 @@ int statement(bool* fsys, int* ptx, int lev)
 					{
 						error(35); /*read() 中应是声明过的变量名 */
 					}
+					/*
+						* 孔止
+						* begin
+					*/
+
 					else
 					{
 						gendo(opr, 0, 16);  //生成输入指令，读取值到栈顶
@@ -260,49 +373,62 @@ int statement(bool* fsys, int* ptx, int lev)
 						getsymdo;
 					}
 				}
+				/*
+				* end
+				*/
+
+				/*
+				* 卢柏铖
+				* begin
+				*/
 				else
 				{
-					if (sym == ifsym)		/*准备按照if语句准备*/
+					if (sym == ifsym)
 					{
 						getsymdo;
 						memcpy(nxtlev, fsys, sizeof(bool) * symnum);
 						nxtlev[thensym] = true;
-						nxtlev[dosym] = true;						//后跟符号为then或do
-						/*------add_up-------0*/
-						nxtlev[elsesym] = true;						//将if和else联系起来
-						/*-------add_bottom-------*/
-						conditiondo(nxtlev, ptx, lev);				//调用条件处理（逻辑运算）函数
+						nxtlev[dosym] = true;
+						/*-------add_up-------*/
+						nxtlev[elsesym] = true;//添加后跟符号else
+						/*-------add_bottom------*/
+						conditiondo(nxtlev, ptx, lev);
 						if (sym == thensym)
 						{
-							getsymdo;		//读取下一个符号
+							getsymdo;
 						}
 						else
 						{
 							error(16);
 						}
-						cx1 = cx;						//保存当前指令的地址
-						gendo(jpc, 0, 0);				//生成条件跳转指令，跳转地址暂写0
-						statementdo(fsys, ptx, lev);		//处理then后面的语句
-						code[cx1].a = cx;					/*经过statementdo处理后,
-															cx为then后语句执行完的位置，它正是前面未定的跳转地址*/
+						cx1 = cx;
+						gendo(jpc, 0, 0);
+						statementdo(fsys, ptx, lev);
+						code[cx1].a = cx;
 
-						/*-------------add_up-------------*/
-						/* 扩展 if-then-else 语句 */
-						if (sym == elsesym) {
+						/*-------add_up---------*/
+						if (sym != elsesym) { code[cx1].a = cx; }
+						else
+						{
 							getsymdo;
-							cx2 = cx;						//记录jmp指令位置,方便回填
-							code[cx1].a = cx + 1;			/*cx为当前的指令地址，
-															 cx+1即为then语句执行后的else语句的位置，回填地址*/
-							gendo(jmp, 0, 0);				//将来会直接跳转到else语句后面	
-							//经statement处理后,cx为then后语句执行完的位置，它正是前面未定的跳转地址，为jpc指令赋值
+							cx2 = cx;
+							code[cx1].a = cx + 1;
+							gendo(jmp, 0, 0);
 							statementdo(fsys, ptx, lev);
-							//当前是else后面的语句结束位置，if语句执行后应当跳转至此 为jmp指令最后一个赋值
 							code[cx2].a = cx;
 						}
-						/*-------------add_bottom---------------*/
+						/*------add_bottom--------*/
+
 					}
 					else
 					{
+						/*
+						* end
+						*/
+
+						/*
+						* 李兆海
+						*/
 						if (sym == beginsym)		/*准备按照复合语句处理*/
 						{
 							getsymdo;
@@ -332,6 +458,15 @@ int statement(bool* fsys, int* ptx, int lev)
 								error(17);		/*缺少end或分号*/
 							}
 						}
+						/*
+						* end
+						*/
+
+						/*
+						* 刘芊羿
+						* begin
+						*/
+
 						else
 						{
 							if (sym == whilesym)
@@ -352,6 +487,11 @@ int statement(bool* fsys, int* ptx, int lev)
 								}
 								statementdo(fsys, ptx, lev);
 								gendo(jmp, 0, cx1);
+								/*
+									* end
+									*/
+									//3118005419彭凯金 P388
+
 								code[cx2].a = cx;  /* 反填跳出循环的地址，与if类似 */
 							}
 							else
@@ -376,11 +516,11 @@ int statement(bool* fsys, int* ptx, int lev)
 
 
 
-
-
 参考博客：
 
 【1】[(1条消息) 编译原理大作业-PL0语言编译器_dark的博客-CSDN博客_编译原理大作业](https://blog.csdn.net/weixin_43323146/article/details/113792219)
 
 【2】扩展ELSE[(1条消息) Pl0编译器扩充_尘心(●—●)的博客-CSDN博客](https://blog.csdn.net/qq_41979507/article/details/103934856)
+
+【3】我已经笑了[(1条消息) 编译原理课程设计-PL/0编译器的扩充（C语言完整版）_Cheung-CSDN博客](https://blog.csdn.net/Ahoob/article/details/44519687)
 

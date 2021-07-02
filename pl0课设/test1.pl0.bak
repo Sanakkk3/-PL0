@@ -1,0 +1,10 @@
+var a,b,c;
+begin
+    b:=1;
+    a:=5;
+    c:=8;
+    a+=b;
+    c-=b;
+    write(a);
+    write(c);
+end.
