@@ -351,6 +351,44 @@ int getsym()
 				error(30);
 			}
 		}
+		/*------add_up---------*/
+		else if (ch == '+') //增添检测++和+=
+		{
+			getchdo;
+			if (ch == '=') //+=
+			{
+				sym = peql;
+				getchdo;
+			}
+			else if (ch == '+') //++
+			{
+				sym = dplus;
+				printf("检测到 ++ ！\n");
+				getchdo;
+			}
+			else {
+				sym = plus;
+			}
+		}
+		else if (ch == '-') //增添检测--和-=
+		{
+			getchdo;
+			if (ch == '=')  //-=
+			{
+				sym = meql;
+				getchdo;
+			}
+			else if (ch == '-')  //--
+			{
+				sym == dminus;
+				printf("检测到 -- ！\n");
+				getchdo;
+			}
+			else {
+				sym = minus;
+			}
+		}
+		/*------add_down---------*/
 		else {
 			if (ch == ':') {   /*检测赋值符号*/
 				getchdo;
@@ -397,42 +435,6 @@ int getsym()
 							sym = gtr;
 						}
 					}
-					/*------add_up---------*/
-					else if (ch == '+') //增添检测++和+=
-					{
-						getchdo;
-						if (ch == '=') //+=
-						{
-							sym = peql;
-							getchdo;
-						}
-						else if (ch == '+') //++
-						{
-							sym = dplus;
-							getchdo;
-						}
-						else {
-							sym = plus;
-						}
-					}
-					else if (ch == '-') //增添检测--和-=
-					{
-						getchdo;
-						if (ch == '=')  //-=
-						{
-							sym = meql;
-							getchdo;
-						}
-						else if (ch == '-')  //--
-						{
-							sym == dminus;
-							getchdo;
-						}
-						else {
-							sym = minus;
-						}
-					}
-					/*------add_down---------*/
 					else {
 						sym = ssym[ch]; /*当符号不满足上述条件时，全部按照单字符符号处理*/
 						//getchdo;
@@ -869,10 +871,101 @@ int statement(bool* fsys, int* ptx, int lev)
 						gendo(sto, lev - table[i].level, table[i].adr);
 					}
 				}
+				else if (sym == dplus) {			/*后 ++ 运算*/
+					printf(" 后++运算！\n ");
+					getsymdo;
+					gendo(lod, lev - table[i].level, table[i].adr);	 //找到变量地址，将其值入栈
+					gendo(lit, 0, 1);	//取常数1到栈顶
+					if (i != 0) {
+						gendo(opr, 0, 2);		//次栈顶与栈顶的值相加，结果存入次栈顶，t减1
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+				}
+				else if (sym == dminus) {			/*后 -- 运算*/
+					printf(" 后--运算！\n ");
+					getsymdo;
+					gendo(lod, lev - table[i].level, table[i].adr);	 //找到变量地址，将其值入栈
+					gendo(lit, 0, 1);	//取常数1到栈顶
+					if (i != 0) {
+						gendo(opr, 0, 3);		//次栈顶与栈顶的值相减，结果存入次栈顶，t减1
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+				}
+				else {
+					error(13);
+				}
 				/*-----------------------add_bottom--------------*/
 			}
 		}//if(i == 0)
 	}
+	/*--------------------------add_up---------------------------*/
+	else if (sym == dplus) // 前++运算 
+	{
+		getsymdo;
+		if (sym == ident)
+		{
+			i = position(id, *ptx);
+			if (i == 0) error(11);
+			else
+			{
+				if (table[i].kind != variable)
+				{
+					error(12);
+					i = 0;
+				}
+				else    //++后跟的是变量
+				{
+					getsymdo;
+					gendo(lod, lev - table[i].level, table[i].adr);//找到变量地址，将其值入栈
+					gendo(lit, 0, 1);//将常数1取到栈顶
+					if (i != 0)
+					{
+						gendo(opr, 0, 2);     //执行加操作
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+				}
+
+			}
+		}
+		else
+		{
+			error(19);
+		}
+	}
+	else if (sym == dminus) // 前--运算 
+	{
+		getsymdo;
+		if (sym == ident)
+		{
+			i = position(id, *ptx);
+			if (i == 0) error(11);
+			else
+			{
+				if (table[i].kind != variable)
+				{
+					error(12);
+					i = 0;
+				}
+				else  //--后跟的是变量
+				{
+					getsymdo;
+					gendo(lod, lev - table[i].level, table[i].adr);//找到变量地址，将其值入栈
+					gendo(lit, 0, 1);//将常数1取到栈顶
+					if (i != 0)
+					{
+						gendo(opr, 0, 3);     //执行减操作
+						gendo(sto, lev - table[i].level, table[i].adr);
+					}
+				}
+
+			}
+		}
+		else
+		{
+			error(19);
+		}
+	}
+	/*-------------------------add_bottom------------------------*/
 	else
 	{
 		if (sym == readsym) /*准备按照 read语句处理*/
@@ -1000,6 +1093,9 @@ int statement(bool* fsys, int* ptx, int lev)
 						memcpy(nxtlev, fsys, sizeof(bool) * symnum);
 						nxtlev[thensym] = true;
 						nxtlev[dosym] = true;
+						/*-------add_up-------*/
+						nxtlev[elsesym] = true;//添加后跟符号else
+						/*-------add_bottom------*/
 						conditiondo(nxtlev, ptx, lev);
 						if (sym == thensym)
 						{
@@ -1014,7 +1110,18 @@ int statement(bool* fsys, int* ptx, int lev)
 						statementdo(fsys, ptx, lev);
 						code[cx1].a = cx;
 
-
+						/*-------add_up---------*/
+						if (sym != elsesym) { code[cx1].a = cx; }
+						else
+						{
+							getsymdo;
+							cx2 = cx;
+							code[cx1].a = cx + 1;
+							gendo(jmp, 0, 0);
+							statementdo(fsys, ptx, lev);
+							code[cx2].a = cx;
+						}
+						/*------add_bottom--------*/
 					}
 					else
 					{

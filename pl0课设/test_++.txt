@@ -1,0 +1,8 @@
+var a;
+begin
+   a:=5;
+   a++;
+   write(a);
+   ++a;
+   write(a);
+end.
