@@ -1,20 +1,34 @@
-Input pl/0 file?y
-0var a;
+Iput pl/0 file ?y
+0 var a,b,c,d,e,f;
 
-1begin
+1 begin
 
-2   a:=5;
+2     a:=10;
 
-4   a--;
+4     b:=9;
 
-****      !13
-****      !17
-****      !8
-5   write(a);
+6     c:=8;
 
-5   --a;
+8     d:=7;
 
-5   write(a);
+10     f:=a++;
 
-5end.
+18     ++b;
 
+22     c--;
+
+26     e:=--d;
+
+32     write(f);
+
+35     write(a);
+
+38     write(b);
+
+41     write(c);
+
+44     write(d);
+
+47     write(e);
+
+50 end.

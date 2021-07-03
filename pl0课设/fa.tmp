@@ -1,4 +1,50 @@
-1 int 0 4
-2 lit 0 5
-3 sto 0 3
-4 opr 0 0
+ 1 int 0 9
+ 2 lit 0 10
+ 3 sto 0 3
+ 4 lit 0 9
+ 5 sto 0 4
+ 6 lit 0 8
+ 7 sto 0 5
+ 8 lit 0 7
+ 9 sto 0 6
+ 10 lod 0 3
+ 11 lit 0 1
+ 12 opr 0 2
+ 13 sto 0 3
+ 14 lod 0 3
+ 15 lit 0 1
+ 16 opr 0 3
+ 17 sto 0 8
+ 18 lod 0 4
+ 19 lit 0 1
+ 20 opr 0 2
+ 21 sto 0 4
+ 22 lod 0 5
+ 23 lit 0 1
+ 24 opr 0 3
+ 25 sto 0 5
+ 26 lod 0 6
+ 27 lit 0 1
+ 28 opr 0 3
+ 29 sto 0 6
+ 30 lod 0 6
+ 31 sto 0 7
+ 32 lod 0 8
+ 33 opr 0 14
+ 34 opr 0 15
+ 35 lod 0 3
+ 36 opr 0 14
+ 37 opr 0 15
+ 38 lod 0 4
+ 39 opr 0 14
+ 40 opr 0 15
+ 41 lod 0 5
+ 42 opr 0 14
+ 43 opr 0 15
+ 44 lod 0 6
+ 45 opr 0 14
+ 46 opr 0 15
+ 47 lod 0 7
+ 48 opr 0 14
+ 49 opr 0 15
+ 50 opr 0 0

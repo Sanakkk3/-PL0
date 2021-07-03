@@ -8,7 +8,7 @@ typedef enum
 	true
 } bool;
 
-#define norw 18	  /* 关键字个数 */
+#define norw 19	  /* 关键字个数 */	//change
 #define txmax 100 /* 名字表容量 */
 #define nmax 14	  /* number 的最大位数 */
 #define al 10	  /* 符号的最大长度 */
@@ -29,9 +29,12 @@ enum symbol
 	/*添加新的保留字*/
 	forsym, tosym, downtosym, returnsym, elsesym,
 	peql/*+=*/, meql/*-=*/, dplus/*++*/, dminus/*--*/,
+	/*-----add_up---------*/
+	timeseql, slasheql, charsym,
+	/*------add_bottom----*/
 };
 
-#define symnum 41
+#define symnum 44	//change
 
 /* 名字表中的类型 */
 enum object
@@ -39,6 +42,10 @@ enum object
 	constant,
 	variable,
 	procedur,
+	/*------add_up----------*/
+	charcon,//字符型
+	realcon,//实型
+	/*-------add_bottom--------*/
 };
 
 /* 虚拟机代码 */
@@ -117,6 +124,9 @@ int err; /* 错误计数器 */
 #define statementdo(a, b, c)        if (-1 ==  statement(a, b, c)) return -1
 #define constdeclarationdo(a, b, c)        if (-1 == constdeclaration(a, b, c)) return -1
 #define vardeclarationdo(a, b, c)        if (-1 ==  vardeclaration(a, b, c)) return -1
+/*-----------add_up------------*/
+#define chardeclarationdo(a,b,c)              if(-1==chardeclaration(a,b,c))return -1
+/*-----------add_bottom--------*/
 
 void error(int n);
 int getsym();
