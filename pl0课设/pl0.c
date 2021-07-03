@@ -185,11 +185,11 @@ void init()
     statbegsys[callsym] = true;
     statbegsys[ifsym] = true;
     statbegsys[whilesym] = true;
+
     /*设置因子开始符号集*/
     facbegsys[ident] = true;
     facbegsys[number] = true;
     facbegsys[lparen] = true;
-
     /*--------add_up-----------*/
     facbegsys[dplus] = true;        //增加开始因子++
     facbegsys[dminus] = true;       //增加开始因子--
@@ -437,7 +437,7 @@ int getsym()
                         else if (ch == '=')
                         {
                             sym = meql;            //-=
-                            printf("识别出/=号\n");
+                            printf("识别出-=号\n");
                             getchdo;
                         }
                         else
@@ -1519,22 +1519,19 @@ int factor(bool* fsys, int* ptx, int lev)
             /*----------------add_up---------------*/
             if (sym == dplus)
             {
-                gendo(lit, lev - table[i].level, 1);//将值为入栈
-                gendo(opr, lev - table[i].level, 2);//+1,栈顶加次栈顶
-                gendo(sto, lev - table[i].level, table[i].adr);//出栈取值到内存
+                /* 此处是A++运算，将值写回A */
+                gendo(lit, lev - table[i].level, 1);    //取值入栈
+                gendo(opr, lev - table[i].level, 2);    //+1,栈顶加次栈顶
+                gendo(sto, lev - table[i].level, table[i].adr);//存值
                 gendo(lod, lev - table[i].level, table[i].adr);//取值到栈顶
-                gendo(lit, 0, 1);
-                gendo(opr, 0, 3);//栈顶值减
                 getsymdo;
             }
             else if (sym == dminus)
             {
                 gendo(lit, lev - table[i].level, 1);//将值为入栈
-                gendo(opr, lev - table[i].level, 3);//-1,栈顶加次栈顶
+                gendo(opr, lev - table[i].level, 3);//-1,栈顶减次栈顶
                 gendo(sto, lev - table[i].level, table[i].adr);//出栈取值到内存
                 gendo(lod, lev - table[i].level, table[i].adr);//取值到栈顶
-                gendo(lit, 0, 1);
-                gendo(opr, 0, 2);//栈顶值加
                 getsymdo;
             }
         }

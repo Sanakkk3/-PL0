@@ -1,34 +1,21 @@
 Iput pl/0 file ?y
-0 var a,b,c,d,e,f;
+0 var a,b;
 
 1 begin
 
-2     a:=10;
+2   b:=4;
 
-4     b:=9;
+4   a:=6;
 
-6     c:=8;
+6   a-=(b--);
 
-8     d:=7;
+14   write(a);
 
-10     f:=a++;
+17   write(b);
 
-18     ++b;
+20   b+=(a+a)++;
 
-22     c--;
+****            !23
+26   write(b);
 
-26     e:=--d;
-
-32     write(f);
-
-35     write(a);
-
-38     write(b);
-
-41     write(c);
-
-44     write(d);
-
-47     write(e);
-
-50 end.
+29 end.
