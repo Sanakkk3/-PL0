@@ -5,9 +5,6 @@ begin
     c:=8;
     a+=b;
     c-=b;
-    if a<0 then
-    else
-	a:=1;
     write(a);
     write(c);
 end.

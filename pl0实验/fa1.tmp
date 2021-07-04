@@ -1,20 +1,20 @@
 Input pl/0 file?y
-0var a,b,c;
+0var a,b;
 
 1begin
 
-2	a:=8;
+2 a:=8;
 
-4	b:=4;
+4 if a<>5 then
 
-6	read(c);
+7 begin
 
-8	if c>5 then 
+8   write(a);
 
-11		write(a)
+11   a:=3;
 
-14	else
+13   write(a);
 
-15		write(b)
+16 end;
 
-18end.
+16end.

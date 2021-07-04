@@ -1,0 +1,5 @@
+char a;
+begin
+ a:=67;
+ write(a);
+end.

@@ -1,10 +1,10 @@
 var a,b,c;
 begin
-    a:=5;
+    a:=10;
     read(b);
-    c:=8;
+    read(c);
     a+=b;
-    c-=b;
     write(a);
-    write(c);
+    a-=c;
+    write(a);
 end.

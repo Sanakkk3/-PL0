@@ -1,21 +1,36 @@
 Iput pl/0 file ?y
-0 var a,b;
+0 var a,b,i,sum;
 
 1 begin
 
-2   b:=4;
+2     a:=1;
 
-4   a:=6;
+4     b:=6;
 
-6   a-=(b--);
+6     sum:=0;
 
-14   write(a);
+8     for i:=1 to b
 
-17   write(b);
+12       do
 
-20   b+=(a+a)++;
+14         begin
 
-****            !23
-26   write(b);
+14 	sum+=a;
 
-29 end.
+18 	write(i);
+
+21         end;
+
+26       write(sum);
+
+29     for i:=b downto 1
+
+33     do
+
+35       begin
+
+35         write(i);
+
+38       end;
+
+43 end.

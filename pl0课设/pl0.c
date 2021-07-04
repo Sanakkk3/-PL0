@@ -126,11 +126,12 @@ void init()
     strcpy(&(word[11][0]), "procedure");
     strcpy(&(word[12][0]), "read");
     strcpy(&(word[13][0]), "return");           //add
-    strcpy(&(word[14][0]), "then");
-    strcpy(&(word[15][0]), "to");               //add
-    strcpy(&(word[16][0]), "var");
-    strcpy(&(word[17][0]), "while");
-    strcpy(&(word[18][0]), "write");
+    strcpy(&(word[14][0]), "real");             //add
+    strcpy(&(word[15][0]), "then");
+    strcpy(&(word[16][0]), "to");               //add
+    strcpy(&(word[17][0]), "var");
+    strcpy(&(word[18][0]), "while");
+    strcpy(&(word[19][0]), "write");
 
     /*设置保留字符号*/
     wsym[0] = beginsym;
@@ -147,11 +148,12 @@ void init()
     wsym[11] = procsym;
     wsym[12] = readsym;
     wsym[13] = returnsym;           //add
-    wsym[14] = thensym;
-    wsym[15] = tosym;               //add
-    wsym[16] = varsym;
-    wsym[17] = whilesym;
-    wsym[18] = writesym;
+    wsym[14] = realsym;             //add
+    wsym[15] = thensym;
+    wsym[16] = tosym;               //add
+    wsym[17] = varsym;
+    wsym[18] = whilesym;
+    wsym[19] = writesym;
 
     /*设置指令名称*/
     strcpy(&(mnemonic[lit][0]), "lit");
@@ -175,9 +177,9 @@ void init()
     declbegsys[constsym] = true;
     declbegsys[varsym] = true;
     declbegsys[procsym] = true;
-
     /*---------add_up----------*/
     declbegsys[charsym] = true;     //增加声明开始符号charsym
+    declbegsys[realsym] = true;     //增加声明开始符号realsym
     /*--------add_bottom--------*/
 
     /*设置语句开始符号集*/
@@ -604,18 +606,32 @@ int block(int lev, int tx, bool* fsys)
             getsymdo;
             do {
                 chardeclarationdo(&tx, lev, &dx);
-                while (sym == comma)
+                while (sym == comma)        //逗号
                 {
                     getsymdo;
                     chardeclarationdo(&tx, lev, &dx);
                 }
-                if (sym == semicolon)
-                {
+                if (sym == semicolon){       //分号
                     getsymdo;
                 }
-                else
-                {
+                else{
                     error(5);   /*漏掉了分号*/          
+                }
+            } while (sym == ident);
+        }
+        if (sym == realcon) {
+            getsymdo;
+            do {
+                realdeclarationdo(&tx, lev, &dx);
+                while (sym == comma) {
+                    getsymdo;
+                    realdeclarationdo(&tx, lev, &dx);
+                }
+                if (sym == semicolon) {
+                    getsymdo;
+                }
+                else {
+                    error(5);
                 }
             } while (sym == ident);
         }
@@ -693,6 +709,14 @@ int block(int lev, int tx, bool* fsys)
                 fprintf(fas, "%d var %s ", i, table[i].name);
                 fprintf(fas, "lev=%d addr=%d\n", table[i].level, table[i].adr);
                 break;
+            /*-----------add_up-------------*/
+            case charcon:
+                printf("%d char %s ", i, table[i].name);
+                printf("lev=%d addr=%d\n", table[i].level, table[i].adr);
+                fprintf(fas, "%d char %s ", i, table[i].name);
+                fprintf(fas, "lev=%d addr=%d\n", table[i].level, table[i].adr);
+                break;
+            /*----------add_bottom----------*/
             case procedur:
                 printf("%d proc %s ", i, table[i].name);
                 printf("lev=%d addr=%d size=%d\n", table[i].level, table[i].adr, table[i].size);
@@ -746,13 +770,18 @@ void enter(enum object k, int* ptx, int lev, int* pdx)
     case procedur:
         table[(*ptx)].level = lev;
         break;
+    /*----------------add_up----------*/
     case charcon:                       /*字符型名字*/
         table[(*ptx)].level = lev;
         table[(*ptx)].adr = (*pdx);
         (*pdx)++;
         break;
-
-
+    case realcon:                       /*实型名字*/
+        table[(*ptx)].level = lev;
+        table[(*ptx)].adr = (*ptx);
+        (*ptx)++;
+        break;
+    /*----------------add_bottom----------*/
     }
 
 }
@@ -828,7 +857,7 @@ int vardeclaration(int* ptx, int lev, int* pdx)
     return 0;
 }
 
-/*-----------add_up----------------*/
+/*----------------------add_up---------------------*/
 /*
  *字符型声明
  */
@@ -849,21 +878,21 @@ int chardeclaration(int* ptx, int lev, int* pdx)
 /*
  *实型声明
  */
- /*int realdeclaration(int * ptx,int lev,int * pdx)
+ int realdeclaration(int * ptx,int lev,int * pdx)
  {
-     if(sym==ident)
-     {
-         enter(realcon,ptx,lev,pdx);//填写名字表
-         getsymdo;
-     }
-     else
-     {
-         error(4);
-     }
-     return 0;
+	 if(sym==ident)
+	 {
+		 enter(realcon,ptx,lev,pdx);//填写名字表
+		 getsymdo;
+	 }
+	 else
+	 {
+		 error(4);
+	 }
+	 return 0;
  }
- */
- /*---------------add_bottom-------------*/
+ 
+ /*---------------------add_bottom---------------------*/
 
 
  /*
@@ -1073,6 +1102,7 @@ int statement(bool* fsys, int* ptx, int lev)
     /*------------------add_up------------------*/
     else if (sym == forsym)      //检测到for语句
     {
+
         getsymdo;
         if (sym == ident)
         {
@@ -1087,43 +1117,37 @@ int statement(bool* fsys, int* ptx, int lev)
                 else
                 {
                     getsymdo;
-                    if (sym != becomes) error(13);             //赋值语句左部标识符后应是赋值号:=
+                    if (sym != becomes) error(13);            //后跟符号应该是赋值符号 ：=
                     else getsymdo;
                     memcpy(nxtlev, fsys, sizeof(bool) * symnum);
                     nxtlev[tosym] = true;                     //后跟符to和downto
                     nxtlev[downtosym] = true;
-                    expressiondo(nxtlev, ptx, lev);           //处理赋值语句右部的表达式E1
-                    gendo(sto, lev - table[i].level, table[i].adr);     //保存初值
+                    expressiondo(nxtlev, ptx, lev);           //计算表达式1值
+                    gendo(sto, lev - table[i].level, table[i].adr);     //值存回地址
                     switch (sym)
                     {
-                    case tosym:           //步长为的向上增加
+                    case tosym:                             //+2
                         getsymdo;
-                        cx1 = cx;       //保存循环开始点
-                        //将循环判断变量取出放到栈顶
+                        cx1 = cx;                           //循环体结尾需跳回开始地址
                         gendo(lod, lev - table[i].level, table[i].adr);
-                        memcpy(nxtlev, fsys, sizeof(bool) * symnum);    //处理表达式E2
-                        nxtlev[dosym] = true;                         //后跟符do
-                        expressiondo(nxtlev, ptx, lev);
-                        /*判断循环变量条件，比如for i:=E1 to E2 do S中，判断i是否小于E2，
-                        如小于等于，继续循环，大于的话，跳出循环*/
-                        gendo(opr, 0, 13);             //生成比较指令，i是否小于等于E2的值
-                        cx2 = cx;                      //保存循环结束点
-                        //生成条件跳转指令，跳出循环，跳出的地址未知
+                        memcpy(nxtlev, fsys, sizeof(bool) * symnum);        //处理表达式2，提供空间
+                        nxtlev[dosym] = true;                               //后跟符do
+                        expressiondo(nxtlev, ptx, lev);                 //计算表达式2值
+                        gendo(opr, 0, 13);                  //生成比较指令，i是否小于等于E2的值
+                        cx2 = cx;                           //保存循环体结束的下一位置
+                        //生成条件跳转指令，跳出循环，跳出的地址需回填
                         gendo(jpc, 0, 0);
                         if (sym == dosym)               //处理循环体S
                         {
                             getsymdo;
                             statement(fsys, ptx, lev);  //循环体处理
                             //增加循环变量步长为2 
-                            //将循环变量取出放在栈顶
                             gendo(lod, lev - table[i].level, table[i].adr);
-                            gendo(lit, 0, 2);                            //将步长取到栈顶
-                            gendo(opr, 0, 2);                            //循环变量加步长
-                            //将栈顶的值存入循环变量
+                            gendo(lit, 0, 2);                          
+                            gendo(opr, 0, 2);                          
                             gendo(sto, lev - table[i].level, table[i].adr);
                             gendo(jmp, 0, cx1);                 //无条件跳转到循环开始点
-                            /*回填循环结束点的地址，cx为else后语句执行完的位置，它正是前面未定的跳转地址*/
-                            code[cx2].a = cx;
+                            code[cx2].a = cx;                   //回填跳出循环的地址，与while类似
                         }
                         else
                         {
@@ -1249,10 +1273,12 @@ int statement(bool* fsys, int* ptx, int lev)
                         nxtlev[rparen] = true;
                         nxtlev[comma] = true;     /* write的后跟符号为）or，*/
                         expressiondo(nxtlev, ptx, lev);/* 调用表达式处理，此处与read不同，read为给变量赋值*/
+                        /*---------------add_up--------------*/
                         if (table[i].kind == charcon) //字符型输出 
                         {
                             gendo(opr, 0, 17);
                         }
+                        /*---------------add_bottom----------*/
                         else gendo(opr, 0, 14);/* 生成输出指令，输出栈顶的值*/
                     } while (sym == comma);
                     if (sym != rparen)
