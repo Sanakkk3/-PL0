@@ -1,5 +1,6 @@
 ﻿  pl0.c
-D:\VS_2019\projectSpace\pl0_02\pl0课设\pl0.c(608,17): warning C4013: “chardeclaration”未定义；假设外部返回 int
-D:\VS_2019\projectSpace\pl0_02\pl0课设\pl0.c(625,17): warning C4013: “realdeclaration”未定义；假设外部返回 int
-D:\VS_2019\projectSpace\pl0_02\pl0课设\pl0.c(1830,23): warning C4477: “scanf”: 格式字符串“%c”需要类型“char *”的参数，但可变参数 1 拥有了类型“int *”
+D:\VS_2019\projectSpace\pl0_02\pl0课设\pl0.c(620,17): warning C4013: “chardeclaration”未定义；假设外部返回 int
+D:\VS_2019\projectSpace\pl0_02\pl0课设\pl0.c(637,17): warning C4013: “realdeclaration”未定义；假设外部返回 int
+D:\VS_2019\projectSpace\pl0_02\pl0课设\pl0.c(1056,17): warning C4002: 类函数宏的调用“expressionArraydo”参数过多
+D:\VS_2019\projectSpace\pl0_02\pl0课设\pl0.c(2031,23): warning C4477: “scanf”: 格式字符串“%c”需要类型“char *”的参数，但可变参数 1 拥有了类型“int *”
   pl0_02.vcxproj -> D:\VS_2019\projectSpace\pl0_02\pl0课设\x64\Debug\pl0_02.exe

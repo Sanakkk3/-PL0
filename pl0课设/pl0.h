@@ -8,7 +8,7 @@ typedef enum
 	true
 } bool;
 
-#define norw 20	  /* 关键字个数 */	//change
+#define norw 20	  /* 关键字个数 */	//change 13+5+2
 #define txmax 100 /* 名字表容量 */
 #define nmax 14	  /* number 的最大位数 */
 #define al 10	  /* 符号的最大长度 */
@@ -30,11 +30,11 @@ enum symbol
 	forsym, tosym, downtosym, returnsym, elsesym,
 	peql/*+=*/, meql/*-=*/, dplus/*++*/, dminus/*--*/,
 	/*-----add_up---------*/
-	timeseql, slasheql, charsym, realsym,
+	timeseql, slasheql, charsym, realsym,colon/*:*/,
 	/*------add_bottom----*/
 };
 
-#define symnum 45	//change
+#define symnum 46	//change  32+9+5
 
 /* 名字表中的类型 */
 enum object
@@ -45,6 +45,7 @@ enum object
 	/*------add_up----------*/
 	charcon,//字符型
 	realcon,//实型
+	array,	//数组类型
 	/*-------add_bottom--------*/
 };
 
@@ -53,9 +54,13 @@ enum fct
 {
 	lit, opr, lod, sto,
 	cal, inte, jmp, jpc,
+	/*------add_up0=-------*/
+	//数组加两个存取方式
+	sta,lda,
+	/*-----add_bottom------*/
 };
 
-#define fctnum 8
+#define fctnum 10		//修改 8+2
 
 /* 虚拟机代码结构 */
 struct instruction
@@ -98,11 +103,15 @@ bool facbegsys[symnum];	 /* 表明因子开始的符号集合*/
 struct tablestruct
 {
 	char name[al];	  /* 名字 */
-	enum object kind; /* 类型： const/var/array/procedure */
+	enum object kind; /* 类型： const/var/array/procedure/char/real */
 	int val;		  /* 数值，仅 const 使用 */
 	int level;		  /* 所处层，仅 const 不使用 */
 	int adr;		  /* 地址，仅 const 不使用 */
 	int size;		  /* 需要分配的数据区空间，仅 procedure 使用 */
+	/*--------add_up-----------*/
+	/*下界：仅数组需要使用，相对起始位置*/
+	int low;		
+	/*-------add_bottom--------*/
 };
 
 struct tablestruct table[txmax]; /* 名字表 */
@@ -117,6 +126,9 @@ int err; /* 错误计数器 */
 #define getchdo       if (-1 == getch()) return -1
 #define testdo(a, b, c)   if (-1 ==  test(a, b, c)) return -1
 #define gendo(a, b, c)    if (-1 == gen(a, b, c)) return -1
+/*-----------add_up------------*/
+#define expressionArraydo(a,b,c,d)	if(-1==expressionArray(a,b,c,d)) return -1;
+/*----------add_bottom---------*/
 #define expressiondo(a, b, c)   if (-1 == expression(a, b, c)) return -1
 #define factordo(a, b, c)       if (-1 == factor(a, b, c)) return -1
 #define termdo(a, b, c)        if (-1 == term(a, b, c)) return -1
@@ -145,10 +157,22 @@ int factor(bool* fsys, int* ptx, int lev);
 int term(bool* fsys, int* ptx, int lev);
 int condition(bool* fsys, int* ptx, int lev);
 int expression(bool* fsys, int* ptx, int lev);
+/*------add_up---------*/
+/* 处理数组数据 */
+int expressionArray(bool* fsys, int* ptx, int lev,int index);
+/*------add_botton-----*/
 int statement(bool* fsys, int* ptx, int lev);
 void listcode(int cx0);
 int vardeclaration(int* ptx, int lev, int* pdx);
 int constdeclaration(int* ptx, int lev, int* pdx);
 int position(char* idt, int tx);
 void enter(enum object k, int* ptx, int lev, int* pdx);
+/*------add_up---------*/
+/* 处理数组数据 */
+void enterArray(int* ptx, int lev, int* pdx, int start, int end, char* id);
+/*------add_botton-----*/
 int base(int l, int* s, int b);
+/*------add_up---------*/
+/* 判断是否是常量 */
+int isIndex(int index);
+/*------add_botton-----*/

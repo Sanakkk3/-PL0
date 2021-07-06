@@ -1,36 +1,11 @@
 Iput pl/0 file ?y
-0 var a,b,i,sum;
+0 const c=3;
 
-1 begin
+1 var b(2:5),a;
 
-2     a:=1;
+****          !5
+****          !7
+****            !11
+****            !8
+3 begin
 
-4     b:=6;
-
-6     sum:=0;
-
-8     for i:=1 to b
-
-12       do
-
-14         begin
-
-14 	sum+=a;
-
-18 	write(i);
-
-21         end;
-
-26       write(sum);
-
-29     for i:=b downto 1
-
-33     do
-
-35       begin
-
-35         write(i);
-
-38       end;
-
-43 end.

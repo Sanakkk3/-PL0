@@ -1,5 +1,5 @@
-char a;
+var a,b;
 begin
- a:=67;
- write(a);
+ a:=6;
+ b:a;
 end.
