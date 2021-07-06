@@ -1,12 +1,20 @@
 Iput pl/0 file ?y
 0 const c=3;
 
-1 var b(2:5);
+1 var b(0:6);
 
 1 begin
 
-2   read(b(3));
+2   b(0):=0;
 
-7   write(b(3));
+5 write(b(0));
 
-11 end.
+9   b(0+1):=0;
+
+14   write(b(1));
+
+18   read(b(3));
+
+23   write(b(3));
+
+27 end.

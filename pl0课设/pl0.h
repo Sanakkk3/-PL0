@@ -108,7 +108,7 @@ struct tablestruct
 	int adr;		  /* 地址，仅 const 不使用 */
 	int size;		  /* 需要分配的数据区空间，仅 procedure 使用 */
 	/*--------add_up-----------*/
-	int startid;	 /* 数组上上界 */
+	int startid;	 /* 数组下界 */
 	/*-------add_bottom--------*/
 };
 

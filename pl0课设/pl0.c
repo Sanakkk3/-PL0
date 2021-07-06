@@ -454,6 +454,7 @@ int getsym()
                         }
                     }
                     /*--------add_bottom-------------*/
+                    
                     /*--------add_up-----------------*/
                     /* 增加字符型 */
                     else if (ch == '\'')
@@ -781,7 +782,7 @@ int block(int lev, int tx, bool* fsys)
 */
 void enter(enum object k, int* ptx, int lev, int* pdx)
 {
-    (*ptx)++;
+    (*ptx)++;                           
     strcpy(table[(*ptx)].name, id);       /*全局变量id中已存有当前名字的名字*/
     table[(*ptx)].kind = k;
     switch (k)
@@ -890,8 +891,11 @@ int vardeclaration(int* ptx, int lev, int* pdx)
     {
         // 填写名字表并改变堆栈帧计数器
         int startid = 0, endid = 0;
-        enter(variable, ptx, lev, pdx);//填写名字表
+        enter(variable, ptx, lev, pdx);         /*填写名字表，无论是变量还是数组
+                                                * 都可以先进行登记，
+                                                * 随后正对数组进行修改参数*/
         (*pdx)++;
+        printf("分配前ptx值= %d\n", (*pdx));
         getsymdo;
         if (sym == lparen) {
             getsymdo;
@@ -911,8 +915,8 @@ int vardeclaration(int* ptx, int lev, int* pdx)
                 startid = -num;
                 break;
             }
-            table[(*ptx)].adr = table[(*ptx)].adr - startid;
-            table[(*ptx)].startid = startid;
+            table[(*ptx)].adr = table[(*ptx)].adr - startid;    //数组的地址减去一个下界值偏移量
+            table[(*ptx)].startid = startid;                    //记录数组的下界                 
             getsymdo;
             if (sym != colon) {
                 error(30);
@@ -925,22 +929,23 @@ int vardeclaration(int* ptx, int lev, int* pdx)
                     table[(*ptx)].size = endid - startid + 1;
                     break;
                 case number:
-                    endid = num + 1;
+                    endid = num ;
                     table[(*ptx)].size = endid - startid + 1;
                     break;
                 case plus:
                     getsymdo;
-                    endid = num + 1;
+                    endid = num ;
                     table[(*ptx)].size = endid - startid + 1;
                     break;
                 case minus:
                     getsymdo;
-                    endid = -num + 1;
+                    endid = -num ;
                     table[(*ptx)].size = endid - startid + 1;
                     break;
                 }
                 table[(*ptx)].kind = array;
-                (*pdx) = (*pdx) + endid - startid + 1;	//计算数组中的各自dx
+                (*pdx) = (*pdx) + endid - startid + 1;	//分配连续区间
+                printf("分配后ptx值= %d\n", (*pdx));
                 getsymdo;
                 getsymdo;
             }
@@ -1063,19 +1068,15 @@ int statement(bool* fsys, int* ptx, int lev)
                     /*------------------add_bottom------------*/
                 }
                 /*-------------------------add_up-----------------------*/
-                else if (sym == lparen) {		// 数组啦...
-                    getsymdo;
-                    memcpy(nxtlev, fsys, sizeof(bool) * symnum);
-                    expressiondo(nxtlev, ptx, lev);
-                    // parseExpression将产生一系列指令，但最终结果将会保存在栈顶，执行sto命令完成赋值
-                    //在expression最后已经有这个了:nextSym();	//一个)
-                    getsymdo;	//一个:=
-                    //后面和var赋值相同,除了最后生成的语句
-                    getsymdo;
-                    memcpy(nxtlev, fsys, sizeof(bool) * symnum);
-                    expressiondo(nxtlev, ptx, lev);
-                    // parseExpression将产生一系列指令，但最终结果将会保存在栈顶，执行sto命令完成赋值
-                    gendo(sta, lev - table[i].level, table[i].adr);
+                else if (sym == lparen) {		// 处理一维数组赋值，赋值格式可以是 arrayName(1+3):=10，以此为例
+                    getsymdo;   //获取到第一个num=1
+                    memcpy(nxtlev, fsys, sizeof(bool) * symnum);    //计算1+3
+                    expressiondo(nxtlev, ptx, lev);                 //将值置于栈顶
+                    getsymdo;	                                    //获取到下一个符号‘)’
+                    getsymdo;                                       //获取赋值符号 ‘:=’
+                    memcpy(nxtlev, fsys, sizeof(bool) * symnum);    //计算右侧表达式
+                    expressiondo(nxtlev, ptx, lev);       
+                    gendo(sta, lev - table[i].level, table[i].adr); //调用sta指令完成赋值
                 }
                 /*-----------------------add_bottom---------------------*/
                 /*--------------add_up----------------*/

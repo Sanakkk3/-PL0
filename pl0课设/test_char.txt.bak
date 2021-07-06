@@ -1,5 +1,5 @@
 var a,b;
 begin
  a:=6;
- b:a;
+ b:=a;
 end.
