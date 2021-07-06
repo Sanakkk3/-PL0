@@ -1,3 +1,2 @@
 1 const c val=3
-2 array b lev=0 addr=3 size=0 low=2
-3 const  val=0
+2 array b lev=0 addr=1 size=5 low=2

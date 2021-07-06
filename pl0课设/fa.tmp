@@ -1,2 +1,11 @@
- 1 int 0 3
- 2 opr 0 0
+ 1 int 0 10
+ 2 lit 0 3
+ 3 arrcheck 2 5
+ 4 jpc 0 0
+ 5 opr 0 16
+ 6 sta 0 1
+ 7 lit 0 3
+ 8 lda 0 1
+ 9 opr 0 14
+ 10 opr 0 15
+ 11 opr 0 0

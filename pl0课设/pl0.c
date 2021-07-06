@@ -167,6 +167,7 @@ void init()
     /*------------add_up---------------*/
     strcpy(&(mnemonic[sta][0]), "sta");
     strcpy(&(mnemonic[lda][0]), "lda");
+    strcpy(&(mnemonic[arrcheck][0]), "arrcheck");
     /*-----------add_bottom------------*/
 
     /*设置符号集*/
@@ -475,11 +476,20 @@ int getsym()
                         getchdo;
                     }
                     /* 增加注释 */
+                    /*在这个循环里面的条件判断是为了处理读完整个符号都没能遇到右括号的情况，
+                    * 即发生括号不匹配的错误。
+                    * 最后一个getsymdo是为了不影响之后程序的运行，当前注释没有意义，
+                    * 所以再读入一个符号作为本次读入的结果。
+                    */
                     else if (ch == '{') {
-                        while (ch != '}') {
+                        do {
+                            if (cc == ll && ch != '}') {
+                                error(31);      //没有匹配的右括号
+                            }
                             getchdo;
-                        }
-                        getchdo;
+                        } while (ch!='}');
+                        getchdo;    //读入下一个符号前，必须先读入下一个字符
+                        getsymdo;   //获取下一个符号，下一个符号为真实符号，当前'}'符号没有意义
                     }
                     /*-----------add_bottom-----------*/
                     else
@@ -734,9 +744,9 @@ int block(int lev, int tx, bool* fsys)
                 /* 输出一维数组类型 */
             case array:
                 printf("%d array %s ", i, table[i].name);
-                printf("lev=%d addr=%d size=%d low=%d\n", table[i].level, table[i].adr, table[i].size, table[i].low);
+                printf("lev=%d addr=%d size=%d low=%d\n", table[i].level, table[i].adr, table[i].size, table[i].startid);
                 fprintf(fas, "%d array %s ", i, table[i].name);
-                fprintf(fas, "lev=%d addr=%d size=%d low=%d\n", table[i].level, table[i].adr, table[i].size, table[i].low);
+                fprintf(fas, "lev=%d addr=%d size=%d low=%d\n", table[i].level, table[i].adr, table[i].size, table[i].startid);
                 break;
                 /*----------add_bottom----------*/
             case procedur:
@@ -792,7 +802,7 @@ void enter(enum object k, int* ptx, int lev, int* pdx)
     case procedur:
         table[(*ptx)].level = lev;
         break;
-    /*----------------add_up----------*/
+        /*----------------add_up----------*/
     case charcon:                       /*字符型名字*/
         table[(*ptx)].level = lev;
         table[(*ptx)].adr = (*pdx);
@@ -803,29 +813,15 @@ void enter(enum object k, int* ptx, int lev, int* pdx)
         table[(*ptx)].adr = (*ptx);
         (*ptx)++;
         break;
-    /*----------------add_bottom----------*/
+        /*----------------add_bottom----------*/
+        /*----------------add_up----------*/
+    case array:
+        table[(*ptx)].level = lev;
+        table[(*ptx)].adr = (*pdx);
+        break;
+        /*----------------add_bottom----------*/
     }
 
-}
-
-/*
-* 类同上方enter函数
-* start:  数组开始位置
-* end：   数组结束位置
-* 
-* kind：  名字种类const，var，procedure
-* ptx：   名字表尾指针，为了可以改变名字表尾指针的值
-* lev：   名字所在的层次
-* pdx：  dx为当前应分配的变量的相对地址，分配后要怎加1
-*/
-void enterArray(int* ptx, int lev, int* pdx, int start, int end, char* id) {
-    (*ptx)++;                        //增加名字表内容
-    strcpy(table[(*ptx)].name, id);
-    table[(*ptx)].kind = array;     //数组类型
-    table[(*ptx)].level = lev;
-    table[(*ptx)].adr = (*pdx);
-    table[(*ptx)].low = start;
-    (*ptx) += (end - start) + 1;    //连续内存地址分配给数组
 }
 
 /*
@@ -892,59 +888,63 @@ int vardeclaration(int* ptx, int lev, int* pdx)
 {
     if (sym == ident)
     {
-        int start = 0, end = 0;
+        // 填写名字表并改变堆栈帧计数器
+        int startid = 0, endid = 0;
+        enter(variable, ptx, lev, pdx);//填写名字表
+        (*pdx)++;
         getsymdo;
         if (sym == lparen) {
-            char arrayName[11];     //存储变量名字，用于填写名字表
-            memcpy(arrayName, id, 11);
-            printf("检测一维数组变量名：%s\n", arrayName);
             getsymdo;
-            if (sym == number || sym == ident) {
-                if (sym == number)
-                    start = number;
-                else
-                {
-                    start = isIndex(position(id, *ptx));
-                    if (start == -1)
-                        error(31);  //数组定义不能是下界不能是变量，只能是常量或者数字
-                }
+            switch (sym) {
+            case ident:
+                startid = table[position(id, *ptx)].val;
+                break;
+            case number:
+                startid = num;
+                break;
+            case plus:
                 getsymdo;
-                if (sym == colon) {
+                startid = num;
+                break;
+            case minus:
+                getsymdo;
+                startid = -num;
+                break;
+            }
+            table[(*ptx)].adr = table[(*ptx)].adr - startid;
+            table[(*ptx)].startid = startid;
+            getsymdo;
+            if (sym != colon) {
+                error(30);
+            }
+            else {
+                getsymdo;
+                switch (sym) {
+                case ident:
+                    endid = table[position(id, *ptx)].val;
+                    table[(*ptx)].size = endid - startid + 1;
+                    break;
+                case number:
+                    endid = num + 1;
+                    table[(*ptx)].size = endid - startid + 1;
+                    break;
+                case plus:
                     getsymdo;
-                    if (sym == number || sym == ident) {
-                        if (sym == number)
-                            end = number;
-                        else
-                        {
-                            end = isIndex(position(id, *ptx));
-                            if (end == -1)
-                                error(31);  //数组定义不能是下界不能是变量，只能是常量或者数字
-                        }
-                        if (start <= end) {
-                            getsymdo;
-                            if (sym == rparen) {
-                                enterArray(ptx, lev, pdx, start, end, arrayName);
-                            }
-                            else
-                                error(31);  //缺少右括号
-                        }
-                        else
-                            error(31);      //一维数组定义错误，上界小于下界
-                    }
-                    else {
-                        error(31);  //数组定义不能是下界不能是变量，只能是常量或者数字
-                    }
+                    endid = num + 1;
+                    table[(*ptx)].size = endid - startid + 1;
+                    break;
+                case minus:
+                    getsymdo;
+                    endid = -num + 1;
+                    table[(*ptx)].size = endid - startid + 1;
+                    break;
                 }
-            }
-            else
-            {
-                error(31);  //数组定义不能是下界不能是变量，只能是常量或者数字
+                table[(*ptx)].kind = array;
+                (*pdx) = (*pdx) + endid - startid + 1;	//计算数组中的各自dx
+                getsymdo;
+                getsymdo;
             }
         }
-        else {      //单词的变量声明
-            enter(variable, ptx, lev, pdx);//填写名字表
-        }
-        //getsymdo;
     }
     else
     {
@@ -1047,31 +1047,6 @@ int statement(bool* fsys, int* ptx, int lev)
                 getsymdo;   //声明后面有分号
             }
             /*-------------------add_bottom---------------*/
-
-            /*---------------------add_up-----------------*/
-            /* 添加一维数组类型 */
-            else if (table[i].kind == array) {
-                getsymdo;
-                //赋值可能是 a(表达式):=值，所以中间要做表达式处理
-                expressionArraydo(fsys, ptx, lev, true, i);   //下标的表达式，将偏移量（已减去下界值）放回栈顶，此处计算偏移量
-
-                gendo(lit, 0, table[i].adr);    //基地址存回栈顶
-                gendo(opr, 0, 2);           //数组元素地址=基地址+偏移量
-
-                if (sym == becomes) {
-                    getsymdo;
-                }
-                else {
-                    error(13);      //未检测到赋值语句
-                }
-                memcpy(nxtlev, fsys, sizeof(bool) * symnum);    //给所要赋值给数组的值开辟存储空间
-                expression(nxtlev, ptx, lev);       //处理右侧表达式
-                if (i != 0) {
-                    /* expression将执行一系列指令，但最终结果将会保存在栈顶，执行sto2指令完成赋值 */
-                    gendo(sta, lev - table[i].level, 0);
-                }
-            }
-            /*-------------------add_bottom---------------*/
             else
             {
                 getsymdo;
@@ -1087,6 +1062,22 @@ int statement(bool* fsys, int* ptx, int lev)
                     }
                     /*------------------add_bottom------------*/
                 }
+                /*-------------------------add_up-----------------------*/
+                else if (sym == lparen) {		// 数组啦...
+                    getsymdo;
+                    memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+                    expressiondo(nxtlev, ptx, lev);
+                    // parseExpression将产生一系列指令，但最终结果将会保存在栈顶，执行sto命令完成赋值
+                    //在expression最后已经有这个了:nextSym();	//一个)
+                    getsymdo;	//一个:=
+                    //后面和var赋值相同,除了最后生成的语句
+                    getsymdo;
+                    memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+                    expressiondo(nxtlev, ptx, lev);
+                    // parseExpression将产生一系列指令，但最终结果将会保存在栈顶，执行sto命令完成赋值
+                    gendo(sta, lev - table[i].level, table[i].adr);
+                }
+                /*-----------------------add_bottom---------------------*/
                 /*--------------add_up----------------*/
                 else if (sym == peql)    // +=
                 {
@@ -1359,11 +1350,14 @@ int statement(bool* fsys, int* ptx, int lev)
                     /* 一维数组输出 */
                     else if (table[i].kind == array) {
                         getsymdo;
-                        expressionArray(fsys, ptx, lev, i);
-                        gendo(lit, 0, table[i].adr);
-                        gendo(opr, 0, 2);
+                        getsymdo;
+                        memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+                        nxtlev[rparen] = true;
+                        expressiondo(nxtlev, ptx, lev);
+                        gendo(arrcheck, table[i].startid, table[i].size);
+                        gendo(jpc, 0, 0);
                         gendo(opr, 0, 16);
-                        gendo(sta, lev - table[i].level, 0);
+                        gendo(sta, lev - table[i].level, table[i].adr);
                     }
                     /*-----------add_bottom------------*/
                     else
@@ -1612,57 +1606,6 @@ int expression(bool* fsys, int* ptx, int lev)
 }
 
 /*
-*数组表达式处理
-*/
-int expressionArray(bool* fsys, int* ptx, int lev,int index) {
-    enum symbol addop;                    /*用于保存正负号*/
-    bool nxtlev[symnum];
-    if (sym == plus || sym == minus)             /*开头的正负号，此时当前表达式被看作一个正的或负的项*/
-    {
-        addop = sym;                    /*保存开头的正负号*/
-        getsymdo;
-        memcpy(nxtlev, fsys, sizeof(bool) * symnum);
-        nxtlev[plus] = true;
-        nxtlev[minus] = true;
-        termdo(nxtlev, ptx, lev);                /*处理项*/
-        if (addop == minus)
-        {
-            gendo(opr, 0, 1);                   /*如果开头为负号生成取负指令*/
-        }
-    }
-    else                             /*此时表达式被看作项的加减*/
-    {
-        memcpy(nxtlev, fsys, sizeof(bool) * symnum);
-        nxtlev[plus] = true;
-        nxtlev[minus] = true;
-        termdo(nxtlev, ptx, lev);            /*处理项*/
-    }
-    while (sym == plus || sym == minus)
-    {
-        addop = sym;
-        getsymdo;
-        memcpy(nxtlev, fsys, sizeof(bool) * symnum);
-        nxtlev[plus] = true;
-        nxtlev[minus] = true;
-        termdo(nxtlev, ptx, lev);              /*处理项*/
-        if (addop == plus)
-        {
-            gendo(opr, 0, 2);                    /*生成加法指令*/
-        }
-        else
-        {
-            gendo(opr, 0, 3);                /*生成减法指令*/
-        }
-    }
-    /*-----------------add_up--------------------*/
-    /* 实质上在expression基础上添加的代码只有这几行 */
-	gendo(lit, 0, table[index].low);
-	gendo(opr, 0, 3);   //次栈顶=次栈顶-栈顶 t--
-    /*---------------add_bottom------------------*/
-    return 0;
-}
-
-/*
 *项处理
 */
 int term(bool* fsys, int* ptx, int lev)
@@ -1727,18 +1670,20 @@ int factor(bool* fsys, int* ptx, int lev)
                       /*-----------add_bottom-----------*/
                     /*------------add_up--------------*/
                 case array:                                         /*一维数组类型*/
-                    //标识符
                     getsymdo;
-                    //左括号
-                    getsymdo;
-                    //表达式处理
-                    expressionArraydo(nxtlev, ptx, lev, i);
-                    //右括号
-                    getsymdo;
-                    gendo(lit, 0, table[i].adr);
-                    gendo(opr, 0, 2);
-                    gendo(lda, lev - table[i].level, 0);
-                    break;
+                    if (sym == lparen)
+                    {					//是数组
+                        getsymdo;
+                        memcpy(nxtlev, fsys, sizeof(bool) * symnum);
+                        nxtlev[rparen] = true;
+                        expressiondo(nxtlev, ptx, lev);
+                        gendo(lda, lev - table[i].level, table[i].adr);
+                        //getsymdo;							
+                    }
+                    if (sym == rparen)
+                    {
+                        //getsymdo;
+                    }
                     /*-----------add_bottom-----------*/
                 }
             }
@@ -2053,24 +1998,10 @@ void interpret()
             t++;
             break;
 
-             /*-----------------add_up--------------*/
-        case lda:
-            s[t - 1] = s[base(i.l, s, b) + s[t - 1]];       //应当覆盖基址和偏移量所在位置，为保证可以进行条件判断
-            //t++;
-            break;
-             /*--------------add_bottom-------------*/
-
         case sto:       /*栈顶的值存到相对当前过程的数据基地址为ａ的内存*/
             t--;
             s[base(i.l, s, b) + i.a] = s[t];
             break;
-
-            /*-----------------add_up--------------*/
-        case sta:
-            t--;
-			s[base(i.l, s, b) + s[t - 1]] = s[t];       //s[偏移量+次栈顶]=s[栈顶]
-            break;
-            /*--------------add_bottom-------------*/
 
         case cal:              /*调用子程序*/
             s[t] = base(i.l, s, b); /*将父过程基地址入栈*/
@@ -2095,6 +2026,29 @@ void interpret()
                 p = i.a;
             }
             break;
+            /*----------------------------add_up--------------------------*/
+        case sta:                        // 栈顶的值存到数组下标为a的内存
+            t--;
+            s[base(i.l, s, b) + i.a + s[t - 1]] = s[t];
+            t--;
+            break;
+        case lda:
+            s[t - 1] = s[base(i.l, s, b) + i.a + s[t - 1]];       //对数组的读取 第二个S[T]是放入偏移地址的				
+            break;
+        case arrcheck:
+            s[t] = i.a;
+            if ((s[t - 1] < i.l) || (s[t - 1] > s[t] + i.l - 1))
+            {
+                printf("Error:Out of the array's size!\n");
+                fprintf(fa2, "Error:Out of the array's size!\n");
+                s[t] = 0;
+            }
+            else {
+                s[t] = 1;
+            }
+            t++;
+            break;
+            /*-----------------------------add_bottom------------------------------*/
         }
     } while (p != 0);
 }
@@ -2111,14 +2065,3 @@ int base(int l, int* s, int b)
     }
     return b1;
 }
-
-/*----------------add_up---------------*/
-/* 判断是否为常量，是返回常量值，否返回-1 */
-int isIndex(int index) {
-    if (index == 0 || table[index].kind == constant) {
-        error(31);  //常量未找到
-        return -1;
-    }
-    return table[index].val;
-}
-/*---------------add_bottom------------*/
