@@ -1,16 +1,16 @@
 Iput pl/0 file ?y
 0 const c=3;
 
-1 var b(2:10);
+1 var b(0:6);
 
 1 begin
 
-2   b(4):=5;
+2   b(0+1):=0;
 
-5   write(b(4));
+7   write(b(1));
 
-9   read(b(3));
+11   read(b(3));
 
-14   write(b(3));
+16   write(b(3));
 
-18 end.
+20 end.

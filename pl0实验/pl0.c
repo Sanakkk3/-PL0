@@ -86,6 +86,7 @@ int main()
 		printf("Can't open file!\n");
 	}
 	printf("\n");
+	system("pause");
 	return 0;
 }
 

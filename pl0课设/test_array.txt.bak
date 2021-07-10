@@ -1,8 +1,0 @@
-const c=3;
-var b(1:6);
-begin
-  b(0+1):=0;
-  write(b(1));
-  read(b(3));
-  write(b(3));
-end.

@@ -1,20 +1,27 @@
 Input pl/0 file?y
-0var a,b;
+0begin
 
-1begin
+2+=;
 
-2 a:=8;
+****  !19
+2-=;
 
-4 if a<>5 then
+****  !19
+2++;
 
-7 begin
+****  !19
+2--;
 
-8   write(a);
+2for;
 
-11   a:=3;
+****   !19
+2to;
 
-13   write(a);
+****  !19
+2downto;
 
-16 end;
+****      !19
+2return;
 
-16end.
+****      !19
+2end.
