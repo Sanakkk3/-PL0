@@ -895,7 +895,6 @@ int vardeclaration(int* ptx, int lev, int* pdx)
                                                 * 都可以先进行登记，
                                                 * 随后正对数组进行修改参数*/
         (*pdx)++;
-        printf("分配前ptx值= %d\n", (*pdx));
         getsymdo;
         if (sym == lparen) {
             getsymdo;
@@ -915,6 +914,7 @@ int vardeclaration(int* ptx, int lev, int* pdx)
                 startid = -num;
                 break;
             }
+            printf("分配前table[(*ptx)].adr值= %d\n", table[(*ptx)].adr);
             table[(*ptx)].adr = table[(*ptx)].adr - startid;    //数组的地址减去一个下界值偏移量
             table[(*ptx)].startid = startid;                    //记录数组的下界                 
             getsymdo;
@@ -945,7 +945,6 @@ int vardeclaration(int* ptx, int lev, int* pdx)
                 }
                 table[(*ptx)].kind = array;
                 (*pdx) = (*pdx) + endid - startid + 1;	//分配连续区间
-                printf("分配后ptx值= %d\n", (*pdx));
                 getsymdo;
                 getsymdo;
             }
